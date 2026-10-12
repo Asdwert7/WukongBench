@@ -22,6 +22,10 @@
   <img src="docs/demo.gif" alt="Демонстрация работы WukongBench" width="100%">
 </p>
 
+## Загрузка
+<p align="center">
+  <img src="docs/download_demo.gif" alt="как скачать WukongBench" width="100%">
+</p>
 
 ---
 
