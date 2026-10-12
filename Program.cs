@@ -25,11 +25,19 @@ try
     Console.WriteLine(report);
     Console.WriteLine($"Отчёт сохранён: {ReportBuilder.Save(report)}");
 }
+catch (Exception ex)
+{
+    Console.WriteLine($"ОШИБКА ({ex.GetType().Name}): {ex.Message}");
+}
 finally
 {
     settings.Restore();
     Console.WriteLine("Исходные настройки восстановлены.");
 }
+
+Console.WriteLine();
+Console.WriteLine("Нажми Enter, чтобы закрыть окно...");
+Console.ReadLine();
 
 static BenchmarkResult RunTest(SettingsProfile profile, BenchmarkInstall install)
 {
@@ -44,8 +52,18 @@ static BenchmarkResult RunTest(SettingsProfile profile, BenchmarkInstall install
 
     try
     {
-        // TODO(WIN): подождать появления окна/меню и автоматически нажать
-        // "Benchmark", затем "Confirm". Пока этого нет, тест нужно запустить руками.
+        // TODO(WIN): вместо фиксированной паузы ждать появления окна и меню.
+        Console.WriteLine($"[{profile.Name}] жду загрузки меню...");
+        Thread.Sleep(TimeSpan.FromSeconds(30));
+
+        Console.WriteLine($"[{profile.Name}] нажимаю \"Тест быстродействия\"...");
+        Mouse.Click(MenuPoints.BenchmarkX, MenuPoints.BenchmarkY);
+
+        // TODO(WIN): подобрать паузу до появления окна подтверждения.
+        Thread.Sleep(TimeSpan.FromSeconds(2));
+
+        Console.WriteLine($"[{profile.Name}] подтверждаю запуск...");
+        Mouse.Click(MenuPoints.ConfirmX, MenuPoints.ConfirmY);
 
         Console.WriteLine($"[{profile.Name}] жду результат (до 10 минут)...");
         BenchmarkResult result = watcher.WaitForResult(TimeSpan.FromMinutes(10));

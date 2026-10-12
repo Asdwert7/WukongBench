@@ -20,7 +20,8 @@ public static class ReportBuilder
 
         AppendTest(sb, "ТЕСТ CPU", cpu, cpuProfile);
         AppendTest(sb, "ТЕСТ GPU", gpu, gpuProfile);
-
+        sb.AppendLine();
+        sb.AppendLine("Расшифровка: Dlss 0=FSR, 1=XeSS; InsertFrame 1=вкл, 0=выкл; Rtx 0=выкл.");
         return sb.ToString();
     }
     public static string Save(string text)
@@ -40,9 +41,11 @@ public static class ReportBuilder
         sb.AppendLine($"FPS мин:     {result.FpsMin}");
         sb.AppendLine($"FPS макс:    {result.FpsMax}");
         sb.AppendLine($"FPS 95%:     {result.Fps95}");
-        sb.AppendLine("Настройки:");
 
-        foreach (KeyValuePair<string, string> pair in profile.UISettings)
+        sb.AppendLine("Настройки (по данным самого теста):");
+        sb.AppendLine($"  {"ScreenResolution".PadRight(20)} {result.ScreenResolution}");
+
+        foreach (KeyValuePair<string, string> pair in result.Settings)
             sb.AppendLine($"  {pair.Key.PadRight(20)} {pair.Value}");
     }
 }

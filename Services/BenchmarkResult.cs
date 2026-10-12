@@ -14,6 +14,7 @@ public class BenchmarkResult
     public string SysMem { get; set; } = "";
     public string SysVer { get; set; } = "";
     public string ScreenResolution { get; set; } = "";
+    public Dictionary<string, string> Settings { get; set; } = new ();
 
     public string RawJson { get; set; } = "";
 }

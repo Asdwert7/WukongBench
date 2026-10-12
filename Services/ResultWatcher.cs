@@ -36,7 +36,7 @@ public class ResultWatcher
                 if (rezzz != null)
                     return rezzz;
             }
-            Thread.Sleep(2000);
+            Thread.Sleep(500);
         }
         throw new TimeoutException($"Чет не появился результат, прошло {timeout.TotalMinutes} мин");
     }
