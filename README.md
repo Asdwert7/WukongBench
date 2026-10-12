@@ -10,7 +10,7 @@
 ![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=csharp&logoColor=white)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=flat-square&logo=windows&logoColor=white)
-![Steam](https://img.shields.io/badge/Steam-Benchmark%20Tool-000000?style=flat-square&logo=steam&logoColor=white)
+[![Steam](https://img.shields.io/badge/Steam-Benchmark%20Tool-000000?style=flat-square&logo=steam&logoColor=white)](https://store.steampowered.com/app/3132990/Black_Myth_Wukong_Benchmark_Tool)
 
 </div>
 
