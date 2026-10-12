@@ -2,8 +2,8 @@ namespace WukongBench.Services;
 
 public static class MenuPoints
 {
-    public const double SplashX = 0.50;
-    public const double SplashY = 0.50;
+    // Блин заметил что кликать по центру плохо и может задеть окно проводника 
+    public const int CornerOffsetPx = 3;
 
     public const double BenchmarkX = 0.11;
     public const double BenchmarkY = 0.47;

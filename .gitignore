@@ -481,3 +481,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 report_*.txt
+ocr_*/
+.DS_Store
+__MACOSX/
+ocr_*/

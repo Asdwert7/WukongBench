@@ -56,41 +56,27 @@ static async Task<BenchmarkResult> RunTestAsync(SettingsProfile profile, Benchma
 
     Console.WriteLine($"[{profile.Name}] запускаю Benchmark Tool...");
     ProcessRunner.Start(install.ExePath);
+    WindowHelper.MinimizeConsole();
 
     try
     {
-        Console.WriteLine($"[{profile.Name}] жду заставку \"Нажмите любую кнопку\"...");
-        Func<string, bool> isSplash = text =>
-            text.StartsWith("Нажмите", StringComparison.Ordinal) || text.Contains("любую кноп");
+        Console.WriteLine($"[{profile.Name}] пропускаю заставку и жду меню...");
+        Func<string, bool> isMenu = text => text.StartsWith("Тест быстродейств", StringComparison.Ordinal);
 
-        bool splash = await ScreenClicker.WaitAndClickAsync(engine, isSplash, TimeSpan.FromSeconds(90));
+        double cornerX = (double)MenuPoints.CornerOffsetPx / ScreenCapture.GetWidth();
+        double cornerY = (double)MenuPoints.CornerOffsetPx / ScreenCapture.GetHeight();
 
-        if (!splash)
+        bool menu = false;
+        for (int i = 0; i < 60 && !menu; i++)
         {
-            Console.WriteLine($"[{profile.Name}] заставку не распознал, кликаю по центру");
-            ScreenClicker.PrintLastLines();
-            Mouse.Click(MenuPoints.SplashX, MenuPoints.SplashY);
-        }
-        else
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                bool stillThere = await ScreenClicker.WaitAndClickAsync(engine, isSplash, TimeSpan.FromSeconds(3));
-                if (!stillThere)
-                    break;
-
-                Console.WriteLine($"[{profile.Name}] заставка не закрылась, кликнул ещё раз");
-            }
+            Mouse.Click(cornerX, cornerY);
+            menu = await ScreenClicker.WaitAndClickAsync(engine, isMenu, TimeSpan.FromSeconds(3));
         }
 
-        Console.WriteLine($"[{profile.Name}] жду главное меню...");
-        if (!await ScreenClicker.WaitAndClickAsync(engine,
-                text => text.StartsWith("Тест быстродейств", StringComparison.Ordinal),
-                TimeSpan.FromSeconds(60)))
+        if (!menu)
         {
-            Console.WriteLine($"[{profile.Name}] меню не распознал, кликаю по координатам");
             ScreenClicker.PrintLastLines();
-            Mouse.Click(MenuPoints.BenchmarkX, MenuPoints.BenchmarkY);
+            throw new TimeoutException("Главное меню так и не появилось.");
         }
 
         Console.WriteLine($"[{profile.Name}] жду окно подтверждения...");
@@ -112,5 +98,6 @@ static async Task<BenchmarkResult> RunTestAsync(SettingsProfile profile, Benchma
     finally
     {
         ProcessRunner.StopAll();
+        WindowHelper.RestoreConsole();
     }
 }
