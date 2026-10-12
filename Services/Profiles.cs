@@ -26,7 +26,7 @@ public static class Profiles
         // TODO(WIN): InsertFrame=0 у этого там 1 наверное 0 но надо проверить
         p.UISettings["InsertFrame"] = "0";
 
-        // TODO(WIN): мин разрешение и мин масштаб заставить его показать
+        SetResolution(p,1280,720,50);
         return p;
     }
 
@@ -37,12 +37,33 @@ public static class Profiles
 
         // Я вырублю если нет rtx то тест свалится
         p.UISettings["Rtx"] = "0";
-        // TODO(WIN): InsertFrame=0
         p.UISettings["InsertFrame"] = "0";
+        // Апскейлер: 0=FSR, 1=XeSS, 2=DLSS. Выключить нельзя, при масштабе 100% XeSS работает без апскейла.
+        p.UISettings["SuperResolutionSampling"] = "1";
 
-        // TODO(WIN): родное разрешение, масштаб рендера 100%
-        // и выключение апскейла (FSR).
+        SetResolution(p, ScreenCapture.GetWidth(), ScreenCapture.GetHeight(), 100);
         return p;
+    }
+
+    // outW x outH — "Разрешение экрана"; scale — масштаб рендера в процентах.
+    // Разрешение рендера = выход * масштаб (так пишет тестер у меня сам).
+    static void SetResolution(SettingsProfile p, int outW, int outH, int scale)
+    {
+        int renderW = outW * scale / 100;
+        int renderH = outH * scale / 100;
+
+        p.Lines["ResolutionSizeX"] = outW.ToString();
+        p.Lines["ResolutionSizeY"] = outH.ToString();
+        p.Lines["LastUserConfirmedResolutionSizeX"] = outW.ToString();
+        p.Lines["LastUserConfirmedResolutionSizeY"] = outH.ToString();
+
+        p.Lines["DesiredScreenWidth"] = renderW.ToString();
+        p.Lines["DesiredScreenHeight"] = renderH.ToString();
+        p.Lines["LastUserConfirmedDesiredScreenWidth"] = renderW.ToString();
+        p.Lines["LastUserConfirmedDesiredScreenHeight"] = renderH.ToString();
+
+        p.UISettings["ImageQuality"] = renderH.ToString();
+        p.Lines["sg.ResolutionQuality"] = scale.ToString();
     }
 
     static SettingsProfile CreateQuality(string name, int level)

@@ -16,12 +16,12 @@ public static class ReportBuilder
         sb.AppendLine($"Видеопамять: {gpu.VideoMemSize}");
         sb.AppendLine($"ОЗУ:         {cpu.SysMem}");
         sb.AppendLine($"Система:     {cpu.SysVer}");
-        sb.AppendLine($"Экран:       {cpu.ScreenResolution}");
+        sb.AppendLine($"Экран:       {ScreenCapture.GetWidth()} × {ScreenCapture.GetHeight()}");
 
         AppendTest(sb, "ТЕСТ CPU", cpu, cpuProfile);
         AppendTest(sb, "ТЕСТ GPU", gpu, gpuProfile);
         sb.AppendLine();
-        sb.AppendLine("Расшифровка: Dlss 0=FSR, 1=XeSS; InsertFrame 1=вкл, 0=выкл; Rtx 0=выкл.");
+        sb.AppendLine("Расшифровка: ImageQuality = масштаб рендера в %; Dlss (апскейлер) 0=FSR, 1=XeSS, 2=DLSS; InsertFrame 1=вкл, 0=выкл; Rtx 0=выкл.");
         return sb.ToString();
     }
     public static string Save(string text)

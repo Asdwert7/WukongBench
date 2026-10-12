@@ -1,10 +1,17 @@
 ﻿using System.Diagnostics;
-using System.Runtime.Versioning;
 using WukongBench.Services;
-
-[assembly: SupportedOSPlatform("windows")]
+using Windows.Media.Ocr;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+if (args.Length > 0 && args[0] == "--ocr-dump")
+{
+    await OcrDump.RunAsync();
+    return;
+}
+
+ScreenCapture.EnableDpiAwareness();
+OcrEngine engine = ScreenText.CreateEngine();
 
 BenchmarkInstall install = Locator.Find();
 Console.WriteLine($"Benchmark Tool найден: {install.Root}");
@@ -17,8 +24,8 @@ settings.Backup();
 
 try
 {
-    BenchmarkResult cpuResult = RunTest(cpuProfile, install);
-    BenchmarkResult gpuResult = RunTest(gpuProfile, install);
+    BenchmarkResult cpuResult = await RunTestAsync(cpuProfile, install, engine);
+    BenchmarkResult gpuResult = await RunTestAsync(gpuProfile, install, engine);
 
     string report = ReportBuilder.Build(cpuResult, cpuProfile, gpuResult, gpuProfile);
     Console.WriteLine();
@@ -39,7 +46,7 @@ Console.WriteLine();
 Console.WriteLine("Нажми Enter, чтобы закрыть окно...");
 Console.ReadLine();
 
-static BenchmarkResult RunTest(SettingsProfile profile, BenchmarkInstall install)
+static async Task<BenchmarkResult> RunTestAsync(SettingsProfile profile, BenchmarkInstall install, OcrEngine engine)
 {
     Console.WriteLine($"[{profile.Name}] применяю настройки...");
     profile.Apply(install.IniPath);
@@ -48,22 +55,53 @@ static BenchmarkResult RunTest(SettingsProfile profile, BenchmarkInstall install
     watcher.Snapshot();
 
     Console.WriteLine($"[{profile.Name}] запускаю Benchmark Tool...");
-    Process process = ProcessRunner.Start(install.ExePath);
+    ProcessRunner.Start(install.ExePath);
 
     try
     {
-        // TODO(WIN): вместо фиксированной паузы ждать появления окна и меню.
-        Console.WriteLine($"[{profile.Name}] жду загрузки меню...");
-        Thread.Sleep(TimeSpan.FromSeconds(30));
+        Console.WriteLine($"[{profile.Name}] жду заставку \"Нажмите любую кнопку\"...");
+        Func<string, bool> isSplash = text =>
+            text.StartsWith("Нажмите", StringComparison.Ordinal) || text.Contains("любую кноп");
 
-        Console.WriteLine($"[{profile.Name}] нажимаю \"Тест быстродействия\"...");
-        Mouse.Click(MenuPoints.BenchmarkX, MenuPoints.BenchmarkY);
+        bool splash = await ScreenClicker.WaitAndClickAsync(engine, isSplash, TimeSpan.FromSeconds(90));
 
-        // TODO(WIN): подобрать паузу до появления окна подтверждения.
-        Thread.Sleep(TimeSpan.FromSeconds(2));
+        if (!splash)
+        {
+            Console.WriteLine($"[{profile.Name}] заставку не распознал, кликаю по центру");
+            ScreenClicker.PrintLastLines();
+            Mouse.Click(MenuPoints.SplashX, MenuPoints.SplashY);
+        }
+        else
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                bool stillThere = await ScreenClicker.WaitAndClickAsync(engine, isSplash, TimeSpan.FromSeconds(3));
+                if (!stillThere)
+                    break;
 
-        Console.WriteLine($"[{profile.Name}] подтверждаю запуск...");
-        Mouse.Click(MenuPoints.ConfirmX, MenuPoints.ConfirmY);
+                Console.WriteLine($"[{profile.Name}] заставка не закрылась, кликнул ещё раз");
+            }
+        }
+
+        Console.WriteLine($"[{profile.Name}] жду главное меню...");
+        if (!await ScreenClicker.WaitAndClickAsync(engine,
+                text => text.StartsWith("Тест быстродейств", StringComparison.Ordinal),
+                TimeSpan.FromSeconds(60)))
+        {
+            Console.WriteLine($"[{profile.Name}] меню не распознал, кликаю по координатам");
+            ScreenClicker.PrintLastLines();
+            Mouse.Click(MenuPoints.BenchmarkX, MenuPoints.BenchmarkY);
+        }
+
+        Console.WriteLine($"[{profile.Name}] жду окно подтверждения...");
+        if (!await ScreenClicker.WaitAndClickAsync(engine,
+                text => text.StartsWith("Подтверд", StringComparison.Ordinal),
+                TimeSpan.FromSeconds(15)))
+        {
+            Console.WriteLine($"[{profile.Name}] кнопку не распознал, кликаю по координатам");
+            ScreenClicker.PrintLastLines();
+            Mouse.Click(MenuPoints.ConfirmX, MenuPoints.ConfirmY);
+        }
 
         Console.WriteLine($"[{profile.Name}] жду результат (до 10 минут)...");
         BenchmarkResult result = watcher.WaitForResult(TimeSpan.FromMinutes(10));
@@ -73,6 +111,6 @@ static BenchmarkResult RunTest(SettingsProfile profile, BenchmarkInstall install
     }
     finally
     {
-        ProcessRunner.Stop(process);
+        ProcessRunner.StopAll();
     }
 }
